@@ -9,9 +9,6 @@ import (
 	"github.com/zaf/agi"
 )
 
-// Eagi composited type *agi.Session
-// and provides extra information (based on configuration)
-// to the context.
 type Eagi struct {
 	*agi.Session
 }
