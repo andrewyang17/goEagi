@@ -5,7 +5,7 @@
 package goEagi
 
 import (
-	"github.com/pkg/errors"
+	"fmt"
 	"github.com/zaf/agi"
 )
 
@@ -23,7 +23,7 @@ type Eagi struct {
 func New() (*Eagi, error) {
 	newAgi := agi.New()
 	if err := newAgi.Init(nil); err != nil {
-		return nil, errors.Wrap(err, "failed to initialize agi session")
+		return nil, fmt.Errorf("failed to initialize agi session: %v\n", err)
 	}
 
 	e := Eagi{}

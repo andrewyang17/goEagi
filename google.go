@@ -7,12 +7,13 @@ package goEagi
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"io"
 	"os"
 	"strings"
 
 	speech "cloud.google.com/go/speech/apiv1"
-	"github.com/pkg/errors"
 	speechpb "google.golang.org/genproto/googleapis/cloud/speech/v1"
 )
 
@@ -42,7 +43,7 @@ func NewGoogleService(privateKeyPath string, languageCode string) (*GoogleServic
 
 	err := os.Setenv("GOOGLE_APPLICATION_CREDENTIALS", privateKeyPath)
 	if err != nil {
-		return nil, errors.Wrap(err, "unable to set environment variable")
+		return nil, fmt.Errorf("failed to set env: %v\n", err)
 	}
 
 	g := GoogleService{
@@ -57,12 +58,12 @@ func NewGoogleService(privateKeyPath string, languageCode string) (*GoogleServic
 
 	client, err := speech.NewClient(ctx)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to create Google speech's client")
+		return nil, err
 	}
 
 	g.client, err = client.StreamingRecognize(ctx)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to perform bidirectional streaming speech recognition")
+		return nil, err
 	}
 
 	if err := g.client.Send(&speechpb.StreamingRecognizeRequest{
@@ -78,7 +79,7 @@ func NewGoogleService(privateKeyPath string, languageCode string) (*GoogleServic
 			},
 		},
 	}); err != nil {
-		return nil, errors.Wrap(err, "failed to initialize stream")
+		return nil, err
 	}
 
 	return &g, nil
@@ -104,7 +105,7 @@ func (g *GoogleService) StartStreaming(done <-chan interface{}, stream <-chan []
 						AudioContent: s,
 					},
 				}); err != nil {
-					startStream <- errors.Wrap(err, "could not stream audio to Google")
+					startStream <- fmt.Errorf("streaming error: %v\n", err)
 					return
 				}
 			}
@@ -129,7 +130,7 @@ func (g *GoogleService) SpeechToTextResponse(done <-chan interface{}) <-chan Goo
 			default:
 				resp, err := g.client.Recv()
 				if err == io.EOF {
-					googleResultStream <- GoogleResult{Error: errors.Wrap(err, "no more audio input is available")}
+					googleResultStream <- GoogleResult{Error: err}
 					return
 				}
 

@@ -1,7 +1,6 @@
 package goEagi
 
 import (
-	"github.com/pkg/errors"
 	"log"
 	"os"
 )
@@ -15,7 +14,7 @@ type Logger struct {
 func NewLogger(filePath string) (*Logger, error) {
 	file, err := os.OpenFile(filePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to open/create logger's file path")
+		return nil, err
 	}
 
 	l := Logger{

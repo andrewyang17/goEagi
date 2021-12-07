@@ -8,13 +8,14 @@ package goEagi
 import (
 	"bytes"
 	"encoding/binary"
+	"errors"
+	"fmt"
 	"math"
 	"os"
 	"path/filepath"
 	"syscall"
 
 	"github.com/cryptix/wav"
-	"github.com/pkg/errors"
 )
 
 const (
@@ -39,7 +40,7 @@ func AudioStreaming(done <-chan interface{}) <-chan AudioResult {
 
 		fd, err := syscall.Open(defaultFileDescriptorPath, syscall.O_RDONLY, 0755)
 		if err != nil {
-			r := AudioResult{Error: errors.Wrap(err, "could not open file descriptor 3")}
+			r := AudioResult{Error: fmt.Errorf("could not open fd3: %v\n", err)}
 			audioResultStream <- r
 			return
 		}
@@ -54,7 +55,7 @@ func AudioStreaming(done <-chan interface{}) <-chan AudioResult {
 			default:
 				n, err := syscall.Read(fd, buf)
 				if err != nil {
-					r := AudioResult{Error: errors.Wrap(err, "failed to read file descriptor 3")}
+					r := AudioResult{Error: fmt.Errorf("failed to read fd3: %v\n", err)}
 					audioResultStream <- r
 					return
 				}
@@ -92,14 +93,14 @@ func GenerateAudio(sample []byte, audioDirectory string, audioName string) (stri
 
 	if _, err := os.Stat(audioDirectory); os.IsNotExist(err) {
 		if err := os.MkdirAll(audioDirectory, os.ModePerm); err != nil {
-			return "", errors.Wrap(err, "failed to create audio directory")
+			return "", err
 		}
 	}
 
 	audioPath := audioDirectory + audioName
 	file, err := os.Create(audioPath)
 	if err != nil {
-		return "", errors.Wrap(err, "failed to create audio path")
+		return "", fmt.Errorf("failed to create audio path: %v\n", err)
 	}
 	defer file.Close()
 
@@ -112,14 +113,14 @@ func GenerateAudio(sample []byte, audioDirectory string, audioName string) (stri
 
 	writer, err := meta.NewWriter(file)
 	if err != nil {
-		return "", errors.Wrap(err, "failed to create a new WaveWriter")
+		return "", err
 	}
 	defer writer.Close()
 	bytesSampleSize := int(meta.SignificantBits) / 8
 
 	for i := 0; i < len(sample); i += bytesSampleSize {
 		if err := writer.WriteSample(sample[i : i+bytesSampleSize]); err != nil {
-			return "", errors.Wrap(err, "failed to generate audio")
+			return "", fmt.Errorf("failed to generate audio: %v\n", err)
 		}
 	}
 
@@ -135,13 +136,13 @@ func scaleFrame(unscaled int) float64 {
 // bits16ToInt is used in parseRawData.
 func bits16ToInt(b []byte) (int, error) {
 	if len(b) != 2 {
-		panic("Expected size 4!")
+		return 0, errors.New("slice of bytes must be length of 2")
 	}
 
 	var payload int16
 	framesPerBuffer := bytes.NewReader(b)
 	if err := binary.Read(framesPerBuffer, binary.LittleEndian, &payload); err != nil {
-		return 0, errors.Wrap(err, "failed to read binary data into int16")
+		return 0, err
 	}
 	return int(payload), nil
 }
