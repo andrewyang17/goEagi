@@ -14,24 +14,16 @@ import (
 // to the context.
 type Eagi struct {
 	*agi.Session
-
-	Id        string // Unique id
-	Extension string // Extension number
-	Actor     string // Customer or Agent
 }
 
 func New() (*Eagi, error) {
 	newAgi := agi.New()
 	if err := newAgi.Init(nil); err != nil {
-		return nil, fmt.Errorf("failed to initialize agi session: %v\n", err)
+		return nil, fmt.Errorf("failed to initialize eagi session: %v\n", err)
 	}
 
 	e := Eagi{}
 	e.Session = newAgi
-
-	env := e.Session.Env
-	e.Extension = env["arg_1"]
-	e.Id = env["arg_2"]
 
 	return &e, nil
 }
