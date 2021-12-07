@@ -88,7 +88,7 @@ func NewGoogleService(privateKeyPath string, languageCode string) (*GoogleServic
 // StartStreaming takes a reading channel of audio stream and send it
 // as a gRPC request to Google service through the initialized client.
 // Caller should run it in a goroutine.
-func (g *GoogleService) StartStreaming(done <-chan interface{}, stream <-chan []byte) <-chan error {
+func (g *GoogleService) StartStreaming(ctx context.Context, stream <-chan []byte) <-chan error {
 	startStream := make(chan error)
 
 	go func() {
@@ -96,7 +96,7 @@ func (g *GoogleService) StartStreaming(done <-chan interface{}, stream <-chan []
 
 		for {
 			select {
-			case <-done:
+			case <-ctx.Done():
 				return
 
 			case s := <-stream:
@@ -116,7 +116,7 @@ func (g *GoogleService) StartStreaming(done <-chan interface{}, stream <-chan []
 }
 
 // SpeechToTextResponse sends the transcription response from Google's SpeechToText.
-func (g *GoogleService) SpeechToTextResponse(done <-chan interface{}) <-chan GoogleResult {
+func (g *GoogleService) SpeechToTextResponse(ctx context.Context) <-chan GoogleResult {
 	googleResultStream := make(chan GoogleResult)
 
 	go func() {
@@ -124,7 +124,7 @@ func (g *GoogleService) SpeechToTextResponse(done <-chan interface{}) <-chan Goo
 
 		for {
 			select {
-			case <-done:
+			case <-ctx.Done():
 				return
 
 			default:

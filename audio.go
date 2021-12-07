@@ -7,6 +7,7 @@ package goEagi
 
 import (
 	"bytes"
+	"context"
 	"encoding/binary"
 	"errors"
 	"fmt"
@@ -32,7 +33,7 @@ type AudioResult struct {
 	Stream []byte
 }
 
-func AudioStreaming(done <-chan interface{}) <-chan AudioResult {
+func AudioStreaming(ctx context.Context) <-chan AudioResult {
 	audioResultStream := make(chan AudioResult)
 
 	go func() {
@@ -49,7 +50,7 @@ func AudioStreaming(done <-chan interface{}) <-chan AudioResult {
 
 		for {
 			select {
-			case <-done:
+			case <-ctx.Done():
 				return
 
 			default:
