@@ -8,9 +8,10 @@ const (
 )
 
 type VadResult struct {
-	Error    error
-	Detected bool
-	Frame    []byte
+	Error     error
+	Detected  bool
+	Amplitude float64
+	Frame     []byte
 }
 
 type Vad struct {
@@ -43,8 +44,8 @@ func (v *Vad) Detect(done <-chan interface{}, stream <-chan []byte) <-chan VadRe
 					return
 				}
 
-				if v.AmplitudeDetectionThreshold > amp {
-					vadResultStream <- VadResult{Detected: true, Frame: buf}
+				if v.AmplitudeDetectionThreshold < amp {
+					vadResultStream <- VadResult{Detected: true, Amplitude: amp, Frame: buf}
 				}
 			}
 		}
