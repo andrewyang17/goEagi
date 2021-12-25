@@ -1,0 +1,6 @@
+language: go
+
+install:
+  - go get -d -v ./...
+  - go get github.com/cheekybits/is
+  - go build -v ./...
