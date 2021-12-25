@@ -8,8 +8,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/gorilla/websocket"
 	"net/url"
+
+	"github.com/gorilla/websocket"
 )
 
 const buffsize = 8000
