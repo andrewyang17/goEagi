@@ -33,6 +33,7 @@ type AudioResult struct {
 	Stream []byte
 }
 
+// AudioStreaming launches a new goroutine for audio streaming via file descriptor 3.
 func AudioStreaming(ctx context.Context) <-chan AudioResult {
 	audioResultStream := make(chan AudioResult)
 

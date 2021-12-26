@@ -1,6 +1,6 @@
 // Package goEagi of eagi.go provides an Eagi type,
 // which composited *agi.Session (an external package) and
-// some member fields to be used across the program.
+// some member fields to be used across the program (upcoming milestones).
 
 package goEagi
 
