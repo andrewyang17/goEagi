@@ -46,12 +46,35 @@ func NewGoogleService(privateKeyPath string, languageCode string) (*GoogleServic
 		return nil, fmt.Errorf("failed to set env: %v\n", err)
 	}
 
-	g := GoogleService{
-		languageCode:   languageCode,
-		model:          "phone_call",
-		privateKeyPath: privateKeyPath,
-		sampleRate:     8000,
-		enhancedMode:   true,
+	var g GoogleService
+	var enhancedMode bool
+
+	enhancedLanguageCode := []string{
+		"es-US", "en-GB", "en-US", "fr-FR", "ja-JP", "pt-BR", "ru-RU",
+	}
+
+	for _, v := range enhancedLanguageCode {
+		if v == languageCode {
+			enhancedMode = true
+
+			g = GoogleService{
+				languageCode:   languageCode,
+				model:          "phone_call",
+				privateKeyPath: privateKeyPath,
+				sampleRate:     8000,
+				enhancedMode:   enhancedMode,
+			}
+			break
+		}
+	}
+
+	if !enhancedMode {
+		g = GoogleService{
+			languageCode:   languageCode,
+			privateKeyPath: privateKeyPath,
+			sampleRate:     8000,
+			enhancedMode:   enhancedMode,
+		}
 	}
 
 	ctx := context.Background()
