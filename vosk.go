@@ -13,9 +13,6 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-const buffsize = 8000
-
-//VoskResult ...
 type VoskResult struct {
 	Result []struct {
 		Conf  float64
@@ -39,8 +36,7 @@ type voskConfig struct {
 	Config VoskService `json:"config"`
 }
 
-// NewVoskService is a constructor of VoskService,
-// @param
+// NewVoskService is a constructor of VoskService.
 func NewVoskService(host string, port string, phraseList []string) (*VoskService, error) {
 
 	h := fmt.Sprintf("%s:%s", host, port)
@@ -70,7 +66,9 @@ func NewVoskService(host string, port string, phraseList []string) (*VoskService
 	return &v, nil
 }
 
-//StartStreaming ...
+// StartStreaming takes a reading channel of audio stream and sends it
+// as a gRPC request to Vosk service through the initialized client.
+// Caller should run it in a goroutine.
 func (v *VoskService) StartStreaming(ctx context.Context, stream <-chan []byte) <-chan error {
 	v.errorStream = make(chan error)
 
@@ -96,7 +94,7 @@ func (v *VoskService) StartStreaming(ctx context.Context, stream <-chan []byte) 
 	return v.errorStream
 }
 
-//Close closses vosk service connection
+//Close closses Vosk service connection
 func (v *VoskService) Close() error {
 	err := v.Client.WriteMessage(websocket.TextMessage, []byte("{\"eof\" : 1}"))
 	return err
