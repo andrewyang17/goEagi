@@ -19,7 +19,7 @@ type Vad struct {
 }
 
 // NewVad is a constructor of Vad.
-// The initialization will be using the defaultAmplitudeDetectionThreshold.
+// The initialization will use the defaultAmplitudeDetectionThreshold.
 func NewVad() *Vad {
 	return &Vad{AmplitudeDetectionThreshold: defaultAmplitudeDetectionThreshold}
 }
