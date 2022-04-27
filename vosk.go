@@ -8,11 +8,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"net/url"
-
 	"github.com/gorilla/websocket"
+	"net/url"
 )
 
+const buffsize = 8000
+
+//VoskResult ...
 type VoskResult struct {
 	Result []struct {
 		Conf  float64
@@ -20,7 +22,8 @@ type VoskResult struct {
 		Start float64
 		Word  string
 	}
-	Text string
+	Text    string
+	Partial string
 }
 
 // VoskService provides information to Vosk Speech Recognizer
@@ -36,7 +39,8 @@ type voskConfig struct {
 	Config VoskService `json:"config"`
 }
 
-// NewVoskService is a constructor of VoskService.
+// NewVoskService is a constructor of VoskService,
+// @param
 func NewVoskService(host string, port string, phraseList []string) (*VoskService, error) {
 
 	h := fmt.Sprintf("%s:%s", host, port)
@@ -79,6 +83,7 @@ func (v *VoskService) StartStreaming(ctx context.Context, stream <-chan []byte) 
 		for {
 			select {
 			case <-ctx.Done():
+				v.Close()
 				return
 
 			case buf := <-stream:
@@ -94,7 +99,7 @@ func (v *VoskService) StartStreaming(ctx context.Context, stream <-chan []byte) 
 	return v.errorStream
 }
 
-//Close closses Vosk service connection
+//Close closses vosk service connection
 func (v *VoskService) Close() error {
 	err := v.Client.WriteMessage(websocket.TextMessage, []byte("{\"eof\" : 1}"))
 	return err
@@ -125,7 +130,7 @@ func (v *VoskService) SpeechToTextResponse(ctx context.Context) <-chan VoskResul
 					v.errorStream <- err
 					return
 				}
-				if m.Text != "" {
+				if m.Text != "" || m.Partial != "" {
 					voskResultStream <- m
 				}
 			}
