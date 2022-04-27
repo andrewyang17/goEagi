@@ -146,6 +146,7 @@ loop:
 		case v := <-voskStream:
 			// Do whatever you want with the returning transcription,
 			// in this case we stdout
+			// you will receive partial data in v.Partial and, if the full text was recognized, you will receive v.Text
 			if err := eagi.Verbose(fmt.Sprintf("Transcription: %v\n", v.Text)); err != nil {
 				panic(err)
 			}
