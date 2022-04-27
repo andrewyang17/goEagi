@@ -12,9 +12,7 @@ import (
 	"net/url"
 )
 
-const buffsize = 8000
-
-//VoskResult ...
+// VoskResult represents a partial o complete response from vosk server
 type VoskResult struct {
 	Result []struct {
 		Conf  float64
