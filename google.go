@@ -7,6 +7,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"strings"
 
@@ -20,8 +21,8 @@ const (
 )
 
 type GoogleResult struct {
-	Error         error
-	Transcription string
+	Result *speechpb.StreamingRecognitionResult
+	Error  error
 }
 
 // GoogleService provides information to Google Speech Recognizer
@@ -140,13 +141,17 @@ func (g *GoogleService) SpeechToTextResponse(ctx context.Context) <-chan GoogleR
 
 			default:
 				resp, err := g.client.Recv()
+				if err == io.EOF {
+					return
+				}
+
 				if err != nil {
 					googleResultStream <- GoogleResult{Error: fmt.Errorf("cannot stream results: %v", err)}
 					return
 				}
 
 				for _, result := range resp.Results {
-					googleResultStream <- GoogleResult{Transcription: result.Alternatives[0].Transcript}
+					googleResultStream <- GoogleResult{Result: result}
 				}
 			}
 		}
