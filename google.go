@@ -88,6 +88,7 @@ func NewGoogleService(privateKeyPath string, languageCode string, speechContext 
 					UseEnhanced:     g.enhancedMode,
 					SpeechContexts:  []*speechpb.SpeechContext{sc},
 				},
+				InterimResults: true,
 			},
 		},
 	}); err != nil {
