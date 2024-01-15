@@ -8,11 +8,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/gorilla/websocket"
 	"net/url"
+
+	"github.com/gorilla/websocket"
 )
 
-// VoskResult represents a partial o complete response from vosk server
+// VoskResult is the response from Vosk Speech Recognizer.
 type VoskResult struct {
 	Result []struct {
 		Conf  float64
@@ -24,8 +25,7 @@ type VoskResult struct {
 	Partial string
 }
 
-// VoskService provides information to Vosk Speech Recognizer
-// as well as methods on calling speech to text.
+// VoskService is the client for Vosk Speech Recognizer.
 type VoskService struct {
 	PhraseList  []string        `json:"phrase_list"`
 	Words       bool            `json:"words"`
@@ -33,12 +33,12 @@ type VoskService struct {
 	errorStream chan error      `json:"-"`
 }
 
+// VoskConfig is the configuration for Vosk Speech Recognizer.
 type voskConfig struct {
 	Config VoskService `json:"config"`
 }
 
-// NewVoskService is a constructor of VoskService,
-// @param
+// NewVoskService creates a new VoskService.
 func NewVoskService(host string, port string, phraseList []string) (*VoskService, error) {
 
 	h := fmt.Sprintf("%s:%s", host, port)
@@ -68,9 +68,8 @@ func NewVoskService(host string, port string, phraseList []string) (*VoskService
 	return &v, nil
 }
 
-// StartStreaming takes a reading channel of audio stream and sends it
-// as a gRPC request to Vosk service through the initialized client.
-// Caller should run it in a goroutine.
+// StartStreaming starts the streaming to Vosk speech to text service.
+// It takes a reading channel of audio stream and sends it as a websocket binary message to Vosk service.
 func (v *VoskService) StartStreaming(ctx context.Context, stream <-chan []byte) <-chan error {
 	v.errorStream = make(chan error)
 
@@ -97,7 +96,7 @@ func (v *VoskService) StartStreaming(ctx context.Context, stream <-chan []byte) 
 	return v.errorStream
 }
 
-//Close closses vosk service connection
+// Close the websocket connection to Vosk service.
 func (v *VoskService) Close() error {
 	err := v.Client.WriteMessage(websocket.TextMessage, []byte("{\"eof\" : 1}"))
 	return err
