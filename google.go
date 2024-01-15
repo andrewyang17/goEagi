@@ -20,13 +20,13 @@ const (
 	domainModel = "phone_call"
 )
 
+// GoogleResult is a struct that contains transcription result from Google Speech to Text service.
 type GoogleResult struct {
 	Result *speechpb.StreamingRecognitionResult
 	Error  error
 }
 
-// GoogleService provides information to Google Speech Recognizer
-// and speech to text methods.
+// GoogleService is used to stream audio data to Google Speech to Text service.
 type GoogleService struct {
 	languageCode   string
 	privateKeyPath string
@@ -35,7 +35,7 @@ type GoogleService struct {
 	client         speechpb.Speech_StreamingRecognizeClient
 }
 
-// NewGoogleService is a constructor of GoogleService,
+// NewGoogleService creates a new GoogleService instance,
 // it takes a privateKeyPath and set it in environment with key GOOGLE_APPLICATION_CREDENTIALS,
 // a languageCode, example ["en-GB", "en-US", "ch", ...], see (https://cloud.google.com/speech-to-text/docs/languages),
 // and a speech context, see (https://cloud.google.com/speech-to-text/docs/speech-adaptation).
@@ -100,7 +100,6 @@ func NewGoogleService(privateKeyPath string, languageCode string, speechContext 
 
 // StartStreaming takes a reading channel of audio stream and sends it
 // as a gRPC request to Google service through the initialized client.
-// Caller should run it in a goroutine.
 func (g *GoogleService) StartStreaming(ctx context.Context, stream <-chan []byte) <-chan error {
 	startStream := make(chan error)
 
@@ -162,6 +161,7 @@ func (g *GoogleService) SpeechToTextResponse(ctx context.Context) <-chan GoogleR
 	return googleResultStream
 }
 
+// supportedEnhancedMode returns a list of supported language code for enhanced mode.
 func supportedEnhancedMode() []string {
 	return []string{"es-US", "en-GB", "en-US", "fr-FR", "ja-JP", "pt-BR", "ru-RU"}
 }
