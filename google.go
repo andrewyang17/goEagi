@@ -161,6 +161,11 @@ func (g *GoogleService) SpeechToTextResponse(ctx context.Context) <-chan GoogleR
 	return googleResultStream
 }
 
+// Close closes the GoogleService.
+func (g *GoogleService) Close() error {
+	return g.client.CloseSend()
+}
+
 // supportedEnhancedMode returns a list of supported language code for enhanced mode.
 func supportedEnhancedMode() []string {
 	return []string{"es-US", "en-GB", "en-US", "fr-FR", "ja-JP", "pt-BR", "ru-RU"}
