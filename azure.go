@@ -99,6 +99,8 @@ func NewAzureService(subscriptionKey string, serviceRegion string, endpoint stri
 	return &azure, nil
 }
 
+// StartStreaming starts the streaming to Azure Speech to Text service.
+// It takes a reading channel of audio stream and sends it as a request to Azure service through the initialized client.
 func (azure *AzureService) StartStreaming(ctx context.Context, stream <-chan []byte) <-chan error {
 	startStream := make(chan error)
 
@@ -131,6 +133,7 @@ func (azure *AzureService) StartStreaming(ctx context.Context, stream <-chan []b
 	return startStream
 }
 
+// SpeechToTextResponse sends the transcription response from Azure's SpeechToText.
 func (azure *AzureService) SpeechToTextResponse(ctx context.Context) <-chan AzureResult {
 	transcriptStream := make(chan AzureResult)
 
@@ -151,6 +154,7 @@ func (azure *AzureService) SpeechToTextResponse(ctx context.Context) <-chan Azur
 	return transcriptStream
 }
 
+// Close closes the AzureService.
 func (azure *AzureService) Close() {
 	azure.InputStream.CloseStream()
 	<-azure.recognizer.StopContinuousRecognitionAsync()
