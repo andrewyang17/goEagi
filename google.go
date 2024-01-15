@@ -36,7 +36,7 @@ type GoogleService struct {
 }
 
 // NewGoogleService is a constructor of GoogleService,
-// it takes a privateKeyPath to set it in environment with key GOOGLE_APPLICATION_CREDENTIALS,
+// it takes a privateKeyPath and set it in environment with key GOOGLE_APPLICATION_CREDENTIALS,
 // a languageCode, example ["en-GB", "en-US", "ch", ...], see (https://cloud.google.com/speech-to-text/docs/languages),
 // and a speech context, see (https://cloud.google.com/speech-to-text/docs/speech-adaptation).
 func NewGoogleService(privateKeyPath string, languageCode string, speechContext []string) (*GoogleService, error) {
@@ -143,6 +143,7 @@ func (g *GoogleService) SpeechToTextResponse(ctx context.Context) <-chan GoogleR
 			default:
 				resp, err := g.client.Recv()
 				if err == io.EOF {
+					googleResultStream <- GoogleResult{Error: io.EOF}
 					return
 				}
 
