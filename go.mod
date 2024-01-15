@@ -4,6 +4,7 @@ go 1.18
 
 require (
 	cloud.google.com/go/speech v1.3.0
+	github.com/Microsoft/cognitive-services-speech-sdk-go v1.33.0
 	github.com/cryptix/wav v0.0.0-20180415113528-8bdace674401
 	github.com/gorilla/websocket v1.5.0
 	github.com/zaf/agi v0.0.0-20220109201550-cdecf9a1b285
