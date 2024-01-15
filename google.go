@@ -10,6 +10,8 @@ import (
 	"io"
 	"os"
 	"strings"
+	"sync"
+	"time"
 
 	speech "cloud.google.com/go/speech/apiv1"
 	speechpb "google.golang.org/genproto/googleapis/cloud/speech/v1"
@@ -18,12 +20,16 @@ import (
 const (
 	sampleRate  = 8000
 	domainModel = "phone_call"
+
+	reinitializationTimeout = 4*time.Minute + 50*time.Second
 )
 
 // GoogleResult is a struct that contains transcription result from Google Speech to Text service.
 type GoogleResult struct {
-	Result *speechpb.StreamingRecognitionResult
-	Error  error
+	Result            *speechpb.StreamingRecognitionResult
+	Error             error
+	Reinitialized     bool
+	ReinitializedInfo string
 }
 
 // GoogleService is used to stream audio data to Google Speech to Text service.
@@ -33,6 +39,8 @@ type GoogleService struct {
 	enhancedMode   bool
 	speechContext  []string
 	client         speechpb.Speech_StreamingRecognizeClient
+
+	sync.RWMutex
 }
 
 // NewGoogleService creates a new GoogleService instance,
@@ -112,6 +120,7 @@ func (g *GoogleService) StartStreaming(ctx context.Context, stream <-chan []byte
 				return
 
 			case s := <-stream:
+				g.RLock()
 				if err := g.client.Send(&speechpb.StreamingRecognizeRequest{
 					StreamingRequest: &speechpb.StreamingRecognizeRequest_AudioContent{
 						AudioContent: s,
@@ -120,6 +129,7 @@ func (g *GoogleService) StartStreaming(ctx context.Context, stream <-chan []byte
 					startStream <- fmt.Errorf("streaming error: %v\n", err)
 					return
 				}
+				g.RUnlock()
 			}
 		}
 	}()
@@ -134,13 +144,40 @@ func (g *GoogleService) SpeechToTextResponse(ctx context.Context) <-chan GoogleR
 	go func() {
 		defer close(googleResultStream)
 
+		// reinitialize the client after a certain period of time, because Google's client has a timeout/quota limit of 5 min.
+		timer := time.NewTimer(reinitializationTimeout)
+
 		for {
 			select {
 			case <-ctx.Done():
 				return
 
+			case <-timer.C:
+				g.Lock()
+				googleResultStream <- GoogleResult{
+					Reinitialized:     true,
+					ReinitializedInfo: fmt.Sprintf("reinitialized client after %v", reinitializationTimeout),
+				}
+
+				if err := g.ReinitializeClient(); err != nil {
+					googleResultStream <- GoogleResult{Error: fmt.Errorf("failed to reinitialize client: %v", err)}
+					g.Unlock()
+					return
+				}
+
+				googleResultStream <- GoogleResult{
+					Reinitialized:     false,
+					ReinitializedInfo: "reinitialized client successfully",
+				}
+				g.Unlock()
+
+				timer.Reset(reinitializationTimeout)
+
 			default:
+				g.RLock()
 				resp, err := g.client.Recv()
+				g.RUnlock()
+
 				if err == io.EOF {
 					googleResultStream <- GoogleResult{Error: io.EOF}
 					return
@@ -163,7 +200,47 @@ func (g *GoogleService) SpeechToTextResponse(ctx context.Context) <-chan GoogleR
 
 // Close closes the GoogleService.
 func (g *GoogleService) Close() error {
+	g.Lock()
+	defer g.Unlock()
 	return g.client.CloseSend()
+}
+
+// ReinitializeClient reinitializes the Google client.
+func (g *GoogleService) ReinitializeClient() error {
+	ctx := context.Background()
+
+	client, err := speech.NewClient(ctx)
+	if err != nil {
+		return err
+	}
+
+	g.client, err = client.StreamingRecognize(ctx)
+	if err != nil {
+		return err
+	}
+
+	sc := &speechpb.SpeechContext{Phrases: g.speechContext}
+
+	if err := g.client.Send(&speechpb.StreamingRecognizeRequest{
+		StreamingRequest: &speechpb.StreamingRecognizeRequest_StreamingConfig{
+			StreamingConfig: &speechpb.StreamingRecognitionConfig{
+				Config: &speechpb.RecognitionConfig{
+					Encoding:                   speechpb.RecognitionConfig_LINEAR16,
+					SampleRateHertz:            sampleRate,
+					LanguageCode:               g.languageCode,
+					Model:                      domainModel,
+					UseEnhanced:                g.enhancedMode,
+					SpeechContexts:             []*speechpb.SpeechContext{sc},
+					EnableAutomaticPunctuation: true,
+				},
+				InterimResults: true,
+			},
+		},
+	}); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // supportedEnhancedMode returns a list of supported language code for enhanced mode.
