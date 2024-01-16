@@ -9,8 +9,7 @@
 <!-- Badges -->
 <p>
   <a href="https://github.com/andrewyang17/goEagi/graphs/contributors">
-    <img src="https://img.shields.io/github/contributors/andrewyang17/goEagi
-" alt="contributors" />
+    <img src="https://img.shields.io/github/contributors/andrewyang17/goEagi" alt="contributors" />
   </a>
   <a href="">
     <img src="https://img.shields.io/github/last-commit/andrewyang17/goEagi" alt="last update" />
