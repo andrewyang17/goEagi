@@ -35,6 +35,8 @@
   </h4>
 </div>
 
+<br>
+
 ## Features
 
 1. Audio Streaming
@@ -44,6 +46,8 @@
 5. Voice Activity Detection
 6. Speech File Generation
 7. Commands to Asterisk
+
+<br>
 
 ## Building the Go Program
 
@@ -56,6 +60,8 @@ Here is the step to build your Go program:
 ```sh
 CGO_ENABLED=1 go build main.go
 ```
+
+<br>
 
 ## Usage
 
@@ -137,6 +143,8 @@ func main() {
 	eagi.Verbose("program ended")
 }
 ```
+
+<br>
 
 ### Microsoft Azure Speech to Text
 - Prerequisite - install the [Speech SDK ](https://learn.microsoft.com/en-us/azure/ai-services/speech-service/quickstarts/setup-platform?tabs=macos%2Cubuntu%2Cdotnetcli%2Cdotnet%2Cjre%2Cmaven%2Cnodejs%2Cmac%2Cpypi&pivots=programming-language-go)
@@ -223,6 +231,8 @@ func main() {
 }
 ```
 
+<br>
+
 ### Vosk
 
 - prerequisite - run the vosk server
@@ -304,6 +314,8 @@ func main() {
 }
 ```
 
+<br>
+
 ## Contributing
 <a href="https://github.com/andrewyang17/goEagi/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=andrewyang17/goEagi" />
@@ -313,17 +325,19 @@ Made with [contrib.rocks](https://contrib.rocks)
 
 Contributions are always welcome!
 
-
+<br>
 
 ## License
 MIT License, see [LICENSE](https://github.com/andrewyang17/goEagi/blob/master/LICENSE).
 
+<br>
 
 ## Contact
 Andrew Yang - andrewyang177@gmail.com
 
 Project Link: [https://github.com/andrewyang17/goEagi](https://github.com/andrewyang17/goEagi)
 
+<br>
 
 ## Acknowledgements
 We would like to express our gratitude to the authors and contributors of the following open-source library, 
