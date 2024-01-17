@@ -132,7 +132,7 @@ func main() {
 - Prerequisite - install the [Speech SDK ](https://learn.microsoft.com/en-us/azure/ai-services/speech-service/quickstarts/setup-platform?tabs=macos%2Cubuntu%2Cdotnetcli%2Cdotnet%2Cjre%2Cmaven%2Cnodejs%2Cmac%2Cpypi&pivots=programming-language-go)
 - Carefully read the Speech SDK documentation and verify the platform requirements to ensure compatibility with your Asterisk server.
 - If it is not possible to install the Speech SDK on your Asterisk server, you can install it on a different machine and stream the audio from your Asterisk server to the Speech SDK.
-- For Azure Speech to Text, you need to build the project with the tag "azure", as shown below:
+- For Azure Speech to Text, you need to enable "CGO_ENABLED" flag and build the project with the tag "azure", as shown below:
 ```sh
 CGO_ENABLED=1 go build -tags azure main.go
 ```
