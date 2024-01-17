@@ -1,3 +1,5 @@
+//go:build azure
+
 package goEagi
 
 import (
