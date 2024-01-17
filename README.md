@@ -321,8 +321,8 @@ Project Link: [https://github.com/andrewyang17/goEagi](https://github.com/andrew
 <br>
 
 ## Acknowledgements
-We would like to express our gratitude to the authors and contributors of the following open-source library, 
-which is used in this project:
+We would like to express our gratitude to the authors and contributors of the following open-source libraries, 
+which were used in this project:
 
 - [cloud.google.com/go/speech](cloud.google.com/go/speech): Developed by Google
 - [github.com/Microsoft/cognitive-services-speech-sdk-go](github.com/Microsoft/cognitive-services-speech-sdk-go): Developed by Microsoft
