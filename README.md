@@ -49,20 +49,6 @@
 
 <br>
 
-## Building the Go Program
-
-This library uses the `github.com/Microsoft/cognitive-services-speech-sdk-go` package, 
-which requires CGO to be enabled for building the Go program. 
-Here is the step to build your Go program:
-
-1. Enable CGO by setting the `CGO_ENABLED` environment variable to `1`. You can do this in your terminal:
-
-```sh
-CGO_ENABLED=1 go build main.go
-```
-
-<br>
-
 ## Usage
 
 ### Google Speech to Text
@@ -78,29 +64,27 @@ import (
 func main() {
 	eagi, err := goEagi.New()
 	if err != nil {
-		panic(err)
+		os.Stdout.WriteString(fmt.Sprintf("error: %v", err))
+		os.Exit(1)
 	}
-
+	
 	googleService, err := goEagi.NewGoogleService("<GoogleSpeechToTextPrivateKey>", "<languageCode>", nil)
 	if err != nil {
 		eagi.Verbose(fmt.Sprintf("error: %v", err))
-		panic(err) 
+		os.Exit(1)
 	}
 	defer googleService.Close()
-
+	
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
 	bridgeStream := make(chan []byte)
 
-	audioStream := goEagi.AudioStreaming(ctx)
+	audioStream := goEagi.StreamAudio(ctx)
 	errCh := googleService.StartStreaming(ctx, bridgeStream)
 	googleResponseCh := googleService.SpeechToTextResponse(ctx)
 
 	go func(ctx context.Context, eagi *goEagi.Eagi) {
-		eagi.Verbose("audio streaming: G started")
-		defer eagi.Verbose("audio streaming: G stopped")
-
 		for {
 			select {
 			case <-ctx.Done():
@@ -108,7 +92,7 @@ func main() {
 
 			case audio := <-audioStream:
 				if audio.Error != nil {
-					eagi.Verbose(fmt.Sprintf("audio streaming: G error: %v", a.Error))
+					eagi.Verbose(fmt.Sprintf("audio streaming: G error: %v", audio.Error))
 					cancel()
 					return
 				}
@@ -116,12 +100,14 @@ func main() {
 			}
 		}
 	}(ctx, eagi)
-
-	eagi.Verbose("Google speech to text response: G started")
+	
 	for {
 		select {
+		case <-ctx.Done():
+            return
+			
 		case err := <-errCh:
-			eagi.Verbose("Google speech to text response: G error: %v", err)
+			eagi.Verbose(fmt.Sprintf("Google speech to text response: G error: %v", err))
 			cancel()
 			return
 
@@ -139,8 +125,6 @@ func main() {
 		}
 	}
 	
-	eagi.Verbose("Google speech to text response: G stopped")
-	eagi.Verbose("program ended")
 }
 ```
 
@@ -150,26 +134,32 @@ func main() {
 - Prerequisite - install the [Speech SDK ](https://learn.microsoft.com/en-us/azure/ai-services/speech-service/quickstarts/setup-platform?tabs=macos%2Cubuntu%2Cdotnetcli%2Cdotnet%2Cjre%2Cmaven%2Cnodejs%2Cmac%2Cpypi&pivots=programming-language-go)
 - Carefully read the Speech SDK documentation and verify the platform requirements to ensure compatibility with your Asterisk server.
 - If it is not possible to install the Speech SDK on your Asterisk server, you can install it on a different machine and stream the audio from your Asterisk server to the Speech SDK.
-
+- For Azure Speech to Text, you need to build the project with the tag "azure", as shown below:
+```sh
+CGO_ENABLED=1 go build -tags azure main.go
+```
 ```go
 package main
 
 import (
 	"context"
 	"fmt"
+	"os"
+
 	"github.com/andrewyang17/goEagi"
 )
 
 func main() {
 	eagi, err := goEagi.New()
 	if err != nil {
-		panic(err)
+		os.Stdout.WriteString(fmt.Sprintf("error: %v", err))
+		os.Exit(1)
 	}
 
 	azureService, err := goEagi.NewAzureService("<subscriptionKey>", "serviceRegion", "", []string{"...<language_code>"})
 	if err != nil {
 		eagi.Verbose(fmt.Sprintf("error: %v", err))
-		panic(err) 
+		os.Exit(1)
 	}
 	defer azureService.Close()
 
@@ -178,14 +168,11 @@ func main() {
 
 	bridgeStream := make(chan []byte)
 
-	audioStream := goEagi.AudioStreaming(ctx)
+	audioStream := goEagi.StreamAudio(ctx)
 	errCh := azureService.StartStreaming(ctx, bridgeStream)
 	azureResponseCh := azureService.SpeechToTextResponse(ctx)
 
 	go func(ctx context.Context, eagi *goEagi.Eagi) {
-		eagi.Verbose("audio streaming: G started")
-		defer eagi.Verbose("audio streaming: G stopped")
-
 		for {
 			select {
 			case <-ctx.Done():
@@ -193,7 +180,7 @@ func main() {
 
 			case audio := <-audioStream:
 				if audio.Error != nil {
-					eagi.Verbose(fmt.Sprintf("audio streaming: G error: %v", a.Error))
+					eagi.Verbose(fmt.Sprintf("audio streaming: G error: %v", audio.Error))
 					cancel()
 					return
 				}
@@ -201,12 +188,14 @@ func main() {
 			}
 		}
 	}(ctx, eagi)
-
-	eagi.Verbose("Azure speech to text response: G started")
+	
 	for {
 		select {
+		case <-ctx.Done():
+            return
+			
 		case err := <-errCh:
-			eagi.Verbose("Azure speech to text response: G error: %v", err)
+			eagi.Verbose(fmt.Sprintf("Azure speech to text response: G error: %v", err))
 			cancel()
 			return
 
@@ -225,9 +214,6 @@ func main() {
 			eagi.Verbose(fmt.Sprintf("IsFinal: %v, Transcription: %v\n", response.IsFinal, response.Transcription))
 		}
 	}
-	
-	eagi.Verbose("Azure speech to text response: G stopped")
-	eagi.Verbose("program ended")
 }
 ```
 
@@ -246,25 +232,27 @@ package main
 import (
 	"context"
 	"fmt"
+	"os"
+
 	"github.com/andrewyang17/goEagi"
 )
 
 func main() {
 	eagi, err := goEagi.New()
 	if err != nil {
-		panic(err)
+		os.Stdout.WriteString(fmt.Sprintf("error: %v", err))
+		os.Exit(1)
 	}
 
 	//use phraseList to list the valid phrases/words. 
 	//notes
 	//	* if you use a phrase list, Vosk will only detect these words, ignoring any other word
-	//	* some Vosk models doesn't support phrase list (i tested with spanish)
+	//	* some Vosk models doesn't support phrase list (I tested with spanish)
 	//  * to disable phrase list, leave phraseList empty
 	voskService, err := goEagi.NewVoskService("<voskHost>", "<voskPort>", nil)
 	if err != nil {
 		eagi.Verbose(fmt.Sprintf("error: %v", err))
-		panic(err)
-		return
+		os.Exit(1)
 	}
 	defer voskService.Close()
 
@@ -274,14 +262,11 @@ func main() {
 	bridgeStream := make(chan []byte)
 	defer close(bridgeStream)
 
-	audioStream := goEagi.AudioStreaming(ctx)
+	audioStream := goEagi.StreamAudio(ctx)
 	errCh := voskService.StartStreaming(ctx, bridgeStream)
 	voskResponseCh := voskService.SpeechToTextResponse(ctx)
 
 	go func(ctx context.Context, eagi *goEagi.Eagi) {
-		eagi.Verbose("audio streaming: G started")
-		defer eagi.Verbose("audio streaming: G stopped")
-
 		for {
 			select {
 			case <-ctx.Done():
@@ -289,7 +274,7 @@ func main() {
 
 			case audio := <-audioStream:
 				if audio.Error != nil {
-					eagi.Verbose(fmt.Sprintf("audio streaming: G error: %v", a.Error))
+					eagi.Verbose(fmt.Sprintf("audio streaming: G error: %v", audio.Error))
 					cancel()
 					return
 				}
@@ -298,11 +283,13 @@ func main() {
 		}
 	}(ctx, eagi)
 
-    eagi.Verbose("Vosk speech to text response: G started")
 	for {
 		select {
+		case <-ctx.Done():
+            return
+			
 		case err := <-errCh:
-			eagi.Verbose("Vosk speech to text response: G error: %v", err)
+			eagi.Verbose(fmt.Sprintf("Vosk speech to text response: G error: %v", err))
 			cancel()
 			return
 
