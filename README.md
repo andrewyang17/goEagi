@@ -49,7 +49,7 @@
 
 <br>
 
-## Usage
+## Example Usage
 
 ### Google Speech to Text
 ```go
