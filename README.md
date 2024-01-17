@@ -102,8 +102,7 @@ func main() {
 	
 	for {
 		select {
-		case <-ctx.Done():
-            return
+		case <-ctx.Done(): return
 			
 		case err := <-errCh:
 			eagi.Verbose(fmt.Sprintf("Google speech to text response: G error: %v", err))
