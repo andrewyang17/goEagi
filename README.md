@@ -87,8 +87,7 @@ func main() {
 	go func(ctx context.Context, eagi *goEagi.Eagi) {
 		for {
 			select {
-			case <-ctx.Done():
-				return
+			case <-ctx.Done(): return
 
 			case audio := <-audioStream:
 				if audio.Error != nil {
