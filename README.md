@@ -40,16 +40,70 @@
 ## Features
 
 1. Audio Streaming
-2. Google's Speech to Text
-3. Microsoft Azure's Speech to Text 
-4. Vosk server Speech to Text
-5. Voice Activity Detection
-6. Speech File Generation
-7. Commands to Asterisk
+2. Google's Text to Speech
+3. Google's Speech to Text
+4. Microsoft Azure's Speech to Text 
+5. Vosk server Speech to Text
+6. Voice Activity Detection
+7. Speech File Generation
+8. Commands to Asterisk
 
 <br>
 
 ## Example Usage
+
+### Google Text to Speech
+- Render text to speech and play it back to the user.
+- You may refer the language code and voice name [here](https://cloud.google.com/text-to-speech/docs/voices).
+- Example dialplan code:
+```sh
+;GoogleTTS, playback message to the user
+exten => 1234,1,Answer
+exten => 1234,n,AGI(<build-script>, "What's up my buddy? how are you?", "en-GB", "en-GB-Neural2-A")
+exten => 1234,n,Hangup
+```
+- Example Go code:
+```go
+package main
+
+import (
+	"strings"
+	"github.com/andrewyang17/goEagi"
+)
+
+func main() {
+	eagi, err := goEagi.New()
+	if err != nil {
+		os.Stdout.WriteString(fmt.Sprintf("error: %v", err))
+		os.Exit(1)
+	}
+
+	content := strings.TrimSpace(eagi.Env["arg_1"])
+	languageCode := strings.TrimSpace(eagi.Env["arg_2"])
+	voiceName := strings.TrimSpace(eagi.Env["arg_3"])
+
+	tts, err := goEagi.NewGoogleTTS(
+		"<GoogleSpeechToTextPrivateKey>",
+		"/tmp/tts", 
+		languageCode, 
+		voiceName)
+	if err != nil {
+		eagi.Verbose(err.Error())
+	}
+
+	audioPath, err := tts.GenerateAudio(content)
+	if err != nil {
+		eagi.Verbose(err.Error())
+	}
+
+	_, err = eagi.StreamFile(audioPath, "")
+	if err != nil {
+		eagi.Verbose(err.Error())
+	}
+}
+```
+
+<br>
 
 ### Google Speech to Text
 ```go
